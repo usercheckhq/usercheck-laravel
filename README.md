@@ -43,20 +43,12 @@ You can obtain a free API key by signing up at [https://app.usercheck.com/regist
 You can use the `usercheck` rule in your Laravel validation:
 
 ```php
-use UserCheck\Laravel\Rules\UserCheck;
-
-$request->validate([
-    'email' => ['required', 'email', new UserCheck],
-]);
-```
-
-Or as a string rule:
-
-```php
 $request->validate([
     'email' => 'required|email|usercheck'
 ]);
 ```
+
+This rule will validate the email address's syntax using the UserCheck API. If the email is invalid, the validation will fail.
 
 ### Additional Options
 

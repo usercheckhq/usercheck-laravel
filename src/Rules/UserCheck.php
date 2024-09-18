@@ -7,7 +7,7 @@ use UserCheck\Laravel\ErrorMessages;
 use UserCheck\Laravel\UserCheckService;
 use UserCheck\Laravel\Exceptions\ApiRequestException;
 
-class UserCheckRule implements Rule
+class UserCheck implements Rule
 {
     protected string $message = '';
 

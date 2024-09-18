@@ -28,17 +28,13 @@ composer require usercheck/laravel
 
 ## Configuration
 
-1.  Publish the config file:
-
-```bash
-php artisan vendor:publish --provider="UserCheck\Laravel\UserCheckProvider" --tag="config"
-```
-
 1.  Add your UserCheck API key to your `.env` file:
 
-`USERCHECK_API_KEY=your_api_key_here`
+```bash
+USERCHECK_API_KEY=your_api_key_here
+```
 
-You can obtain an API key by signing up at [https://app.usercheck.com](https://app.usercheck.com).
+You can obtain a free API key by signing up at [https://app.usercheck.com/register](https://app.usercheck.com).
 
 ## Usage
 

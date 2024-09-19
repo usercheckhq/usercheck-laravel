@@ -3,7 +3,7 @@
 [![Latest Stable Version](https://img.shields.io/packagist/v/usercheck/laravel.svg?style=flat-square)](https://packagist.org/packages/usercheck/laravel)
 [![Total Downloads](https://img.shields.io/packagist/dt/usercheck/laravel.svg?style=flat-square)](https://packagist.org/packages/usercheck/laravel)
 [![License](https://img.shields.io/packagist/l/usercheck/laravel.svg?style=flat-square)](https://packagist.org/packages/usercheck/laravel)
-[![GitHub Build Status](https://img.shields.io/github/actions/workflow/status/usercheck/laravel/tests.yml?label=tests&branch=master&style=flat-square)](https://github.com/usercheck/laravel/actions)
+[![GitHub Build Status](https://img.shields.io/github/actions/workflow/status/usercheckhq/laravel/tests.yml?label=tests&branch=master&style=flat-square)](https://github.com/usercheckhq/laravel/actions)
 
 
 A Laravel package for validating email addresses and domains using the [UserCheck.com](https://www.usercheck.com) API.  

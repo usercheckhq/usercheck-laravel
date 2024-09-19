@@ -16,10 +16,9 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-22.04, windows-2019]
         php: [8.2, 8.3]
 
-    name: PHP ${{ matrix.php }} - ${{ matrix.os }}
+    name: "PHP ${{ matrix.php }} - ${{ matrix.composer-dependency }}"
 
     steps:
       - name: Set git to use LF

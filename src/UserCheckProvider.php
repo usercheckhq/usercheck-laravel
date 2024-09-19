@@ -4,7 +4,7 @@ namespace UserCheck\Laravel;
 
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
-use UserCheck\Laravel\Rules\UserCheckRule;
+use UserCheck\Laravel\Rules\UserCheck;
 
 class UserCheckProvider extends ServiceProvider
 {
@@ -21,7 +21,7 @@ class UserCheckProvider extends ServiceProvider
         ], 'lang');
 
         Validator::extend('usercheck', function ($attribute, $value, $parameters, $validator) {
-            $rule = new UserCheckRule($this->app->make(UserCheckService::class), $parameters);
+            $rule = new UserCheck($this->app->make(UserCheckService::class), $parameters);
             $passes = $rule->passes($attribute, $value);
             if (! $passes) {
                 $validator->setCustomMessages([$attribute => $rule->message()]);

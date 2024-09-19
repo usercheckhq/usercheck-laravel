@@ -28,6 +28,7 @@ class UserCheckService
     protected function validate(string $endpoint, string $value, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable): array
     {
         $response = Http::withToken($this->apiKey)
+            ->withHeader('User-Agent', 'UserCheck-Laravel/0.0.1 (https://github.com/usercheckhq/laravel)')
             ->get("https://api.usercheck.com/{$endpoint}/".urlencode($value));
 
         if (! $response->successful()) {

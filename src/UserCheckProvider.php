@@ -8,7 +8,7 @@ use UserCheck\Laravel\Rules\UserCheck;
 
 class UserCheckProvider extends ServiceProvider
 {
-    public function boot()
+    public function boot(): void
     {
         $this->publishes([
             __DIR__.'/../config/usercheck.php' => config_path('usercheck.php'),
@@ -22,12 +22,17 @@ class UserCheckProvider extends ServiceProvider
 
         Validator::extend('usercheck', function ($attribute, $value, $parameters, $validator) {
             $rule = new UserCheck($this->app->make(UserCheckService::class), $parameters);
-            $passes = $rule->passes($attribute, $value);
-            if (! $passes) {
-                $validator->setCustomMessages([$attribute => $rule->message()]);
+            $fails = false;
+            $failMessage = '';
+            $rule->validate($attribute, $value, function ($message) use (&$fails, &$failMessage) {
+                $fails = true;
+                $failMessage = $message;
+            });
+            if ($fails) {
+                $validator->setCustomMessages([$attribute => $failMessage]);
             }
 
-            return $passes;
+            return ! $fails;
         });
 
         Validator::replacer('usercheck', function ($message, $attribute, $rule, $parameters) {

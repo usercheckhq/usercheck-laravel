@@ -15,8 +15,12 @@ test('UserCheckRule passes when email is valid and not disposable', function () 
     ]);
 
     $rule = new UserCheck(new UserCheckService);
+    $fails = false;
+    $rule->validate('email', 'test@example.com', function () use (&$fails) {
+        $fails = true;
+    });
 
-    expect($rule->passes('email', 'test@example.com'))->toBeTrue();
+    expect($fails)->toBeFalse();
 });
 
 test('UserCheckRule passes when email is disposable but block_disposable is not set', function () {
@@ -29,8 +33,12 @@ test('UserCheckRule passes when email is disposable but block_disposable is not 
     ]);
 
     $rule = new UserCheck(new UserCheckService);
+    $fails = false;
+    $rule->validate('email', 'disposable@example.com', function () use (&$fails) {
+        $fails = true;
+    });
 
-    expect($rule->passes('email', 'disposable@example.com'))->toBeTrue();
+    expect($fails)->toBeFalse();
 });
 
 test('UserCheckRule fails when email is disposable and block_disposable is set', function () {
@@ -43,9 +51,12 @@ test('UserCheckRule fails when email is disposable and block_disposable is set',
     ]);
 
     $rule = new UserCheck(new UserCheckService, ['block_disposable']);
+    $failMessage = '';
+    $rule->validate('email', 'disposable@example.com', function ($message) use (&$failMessage) {
+        $failMessage = $message;
+    });
 
-    expect($rule->passes('email', 'disposable@example.com'))->toBeFalse();
-    expect($rule->message())->toBe(trans('usercheck::validation.usercheck_disposable', ['attribute' => 'email']));
+    expect($failMessage)->toBe(trans('usercheck::validation.usercheck_disposable', ['attribute' => 'email']));
 });
 
 test('UserCheckRule fails when public domain is blocked', function () {
@@ -58,9 +69,12 @@ test('UserCheckRule fails when public domain is blocked', function () {
     ]);
 
     $rule = new UserCheck(new UserCheckService, ['block_public_domain']);
+    $failMessage = '';
+    $rule->validate('email', 'test@gmail.com', function ($message) use (&$failMessage) {
+        $failMessage = $message;
+    });
 
-    expect($rule->passes('email', 'test@gmail.com'))->toBeFalse();
-    expect($rule->message())->toBe(trans('usercheck::validation.usercheck_public_domain', ['attribute' => 'email']));
+    expect($failMessage)->toBe(trans('usercheck::validation.usercheck_public_domain', ['attribute' => 'email']));
 });
 
 test('UserCheckRule fails when domain has no MX records and block_no_mx is set', function () {
@@ -73,9 +87,12 @@ test('UserCheckRule fails when domain has no MX records and block_no_mx is set',
     ]);
 
     $rule = new UserCheck(new UserCheckService, ['block_no_mx']);
+    $failMessage = '';
+    $rule->validate('email', 'test@example.com', function ($message) use (&$failMessage) {
+        $failMessage = $message;
+    });
 
-    expect($rule->passes('email', 'test@example.com'))->toBeFalse();
-    expect($rule->message())->toBe(trans('usercheck::validation.usercheck_no_mx', ['attribute' => 'email']));
+    expect($failMessage)->toBe(trans('usercheck::validation.usercheck_no_mx', ['attribute' => 'email']));
 });
 
 test('UserCheckRule passes for domain-only validation', function () {
@@ -88,8 +105,12 @@ test('UserCheckRule passes for domain-only validation', function () {
     ]);
 
     $rule = new UserCheck(new UserCheckService, ['domain_only']);
+    $fails = false;
+    $rule->validate('domain', 'example.com', function () use (&$fails) {
+        $fails = true;
+    });
 
-    expect($rule->passes('domain', 'example.com'))->toBeTrue();
+    expect($fails)->toBeFalse();
 });
 
 test('UserCheckRule passes for disposable domain in domain-only validation when block_disposable is not set', function () {
@@ -102,8 +123,12 @@ test('UserCheckRule passes for disposable domain in domain-only validation when 
     ]);
 
     $rule = new UserCheck(new UserCheckService, ['domain_only']);
+    $fails = false;
+    $rule->validate('domain', 'disposable.com', function () use (&$fails) {
+        $fails = true;
+    });
 
-    expect($rule->passes('domain', 'disposable.com'))->toBeTrue();
+    expect($fails)->toBeFalse();
 });
 
 test('UserCheckRule fails for disposable domain in domain-only validation when block_disposable is set', function () {
@@ -116,9 +141,12 @@ test('UserCheckRule fails for disposable domain in domain-only validation when b
     ]);
 
     $rule = new UserCheck(new UserCheckService, ['domain_only', 'block_disposable']);
+    $failMessage = '';
+    $rule->validate('domain', 'disposable.com', function ($message) use (&$failMessage) {
+        $failMessage = $message;
+    });
 
-    expect($rule->passes('domain', 'disposable.com'))->toBeFalse();
-    expect($rule->message())->toBe(trans('usercheck::validation.usercheck_disposable', ['attribute' => 'domain']));
+    expect($failMessage)->toBe(trans('usercheck::validation.usercheck_disposable', ['attribute' => 'domain']));
 });
 
 test('UserCheckRule throws exception on API error', function () {
@@ -128,6 +156,6 @@ test('UserCheckRule throws exception on API error', function () {
 
     $rule = new UserCheck(new UserCheckService);
 
-    expect(fn() => $rule->passes('email', 'test@example.com'))
+    expect(fn () => $rule->validate('email', 'test@example.com', function () {}))
         ->toThrow(ApiRequestException::class, 'Unable to verify email: Server error');
 });

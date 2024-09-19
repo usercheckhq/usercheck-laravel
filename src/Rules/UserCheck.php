@@ -2,31 +2,39 @@
 
 namespace UserCheck\Laravel\Rules;
 
-use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Contracts\Validation\ValidationRule;
 use UserCheck\Laravel\ErrorMessages;
-use UserCheck\Laravel\UserCheckService;
 use UserCheck\Laravel\Exceptions\ApiRequestException;
+use UserCheck\Laravel\UserCheckService;
 
-class UserCheck implements Rule
+class UserCheck implements ValidationRule
 {
-    protected string $message = '';
-
     protected UserCheckService $service;
 
+    /** @var array<string> */
     protected array $parameters;
 
+    /**
+     * @param  array<string>  $parameters
+     */
     public function __construct(UserCheckService $service, array $parameters = [])
     {
         $this->service = $service;
         $this->parameters = $parameters;
     }
 
-    public function passes($attribute, $value): bool
+    public function validate(string $attribute, mixed $value, \Closure $fail): void
     {
         $domainOnly = in_array('domain_only', $this->parameters);
         $blockDisposable = in_array('block_disposable', $this->parameters);
         $blockNoMx = in_array('block_no_mx', $this->parameters);
         $blockPublicDomain = in_array('block_public_domain', $this->parameters);
+
+        if (! is_string($value)) {
+            $fail(ErrorMessages::get('usercheck', $attribute));
+
+            return;
+        }
 
         try {
             $result = $domainOnly
@@ -34,23 +42,13 @@ class UserCheck implements Rule
                 : $this->service->validateEmail($value, $blockDisposable, $blockNoMx, $blockPublicDomain);
 
             if (! $result['is_valid']) {
-                $this->message = ErrorMessages::forErrorCode($result['error_code'], $attribute);
-
-                return false;
+                $errorCode = $result['error_code'] ?? null;
+                $fail(ErrorMessages::forErrorCode($errorCode !== false ? (string) $errorCode : null, $attribute));
             }
-
-            return true;
         } catch (ApiRequestException $e) {
             throw $e;
         } catch (\Exception $e) {
-            $this->message = ErrorMessages::get('validation_failed', $attribute).': '.$e->getMessage();
-
-            return false;
+            $fail(ErrorMessages::get('validation_failed', $attribute).': '.$e->getMessage());
         }
-    }
-
-    public function message(): string
-    {
-        return $this->message ?: ErrorMessages::get(ErrorMessages::DEFAULT, 'attribute');
     }
 }

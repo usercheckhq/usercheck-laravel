@@ -1,20 +1,18 @@
-## Laravel UserCheck
+## UserCheck for Laravel
 
 [![Latest Stable Version](https://img.shields.io/packagist/v/usercheck/laravel.svg?style=flat-square)](https://packagist.org/packages/usercheck/laravel)
 [![Total Downloads](https://img.shields.io/packagist/dt/usercheck/laravel.svg?style=flat-square)](https://packagist.org/packages/usercheck/laravel)
 [![License](https://img.shields.io/packagist/l/usercheck/laravel.svg?style=flat-square)](https://packagist.org/packages/usercheck/laravel)
 [![Tests Status](https://img.shields.io/github/actions/workflow/status/usercheckhq/laravel/tests.yml?label=tests&branch=main&style=flat-square)](https://github.com/usercheckhq/laravel/actions)
 
+A Laravel package for validating email addresses using the [UserCheck.com](https://www.usercheck.com) API.  
 
-A Laravel package for validating email addresses and domains using the [UserCheck.com](https://www.usercheck.com) API.  
-This package provides an easy way to integrate email and domain validation into your Laravel application, helping you prevent disposable or invalid email addresses from being used.
+## ✨ Features
 
-## Features
-
-- Validate email addresses and domains
-- Detect disposable email addresses
+- Block disposable email addresses with an always up-to-date API
+- Validate email addresses
 - Check for MX records
-- Identify public email domains (e.g., Gmail, Yahoo)
+- Identify personal email addresses
 - Customizable validation rules
 - Laravel Facade for easy use
 - Localization support
@@ -34,19 +32,17 @@ composer require usercheck/laravel
 
 ## Configuration
 
-1.  Add your UserCheck API key to your `.env` file:
+Add your UserCheck API key to your `.env` file:
 
 ```bash
 USERCHECK_API_KEY=your_api_key_here
 ```
 
-You can obtain a free API key by signing up at [https://app.usercheck.com/register](https://app.usercheck.com).
+You can obtain a free API key by signing up at [https://app.usercheck.com/register](https://app.usercheck.com/register).
 
 ## Usage
 
-### As a Validation Rule
-
-You can use the `usercheck` rule in your Laravel validation:
+Use the `usercheck` rule in your Laravel validation:
 
 ```php
 $request->validate([
@@ -54,18 +50,18 @@ $request->validate([
 ]);
 ```
 
-This rule will validate the email address's syntax using the UserCheck API. If the email is invalid, the validation will fail.
+### Options
 
-### Additional Options
+By default, the `usercheck` rule will only validate the email address's syntax using the UserCheck API. If the email is invalid, the validation will fail.
 
-The `usercheck` rule accepts several options:
+The `usercheck` rule accepts several parameters:
 
-- `domain_only`: Validates only the domain part of the email. Only the domain will be sent to the UserCheck API.
 - `block_disposable`: Fails validation if the email is from a disposable email provider
 - `block_no_mx`: Fails validation if the domain has no MX records
-- `block_public_domain`: Fails validation for public email domains (e.g., Gmail, Yahoo)
+- `block_public_domain`: Fails validation for public email domains (e.g., Gmail, Yahoo). Great to prevent users from signing up with their personal email addresses.
+- `domain_only`: Validates only the domain part of the email. Great for privacy; only the domain will be sent to the API.
 
-Example:
+You can combine these options to create a custom validation rule.
 
 ```php
 $request->validate([

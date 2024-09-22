@@ -44,6 +44,13 @@ class UserCheckService
             ->withHeader('User-Agent', 'UserCheck-Laravel/0.0.1 (https://github.com/usercheckhq/laravel)')
             ->get("https://api.usercheck.com/{$endpoint}/".urlencode($value));
 
+        if ($response->status() === 400) {
+            return [
+                'is_valid' => false,
+                'error_code' => 'usercheck',
+            ];
+        }
+
         if (! $response->successful()) {
             throw new ApiRequestException("Unable to verify {$endpoint}: ".$response->body());
         }

@@ -212,3 +212,37 @@ test('usercheck validation rule fails when domain is disposable and block_dispos
     expect($validator->fails())->toBeTrue()
         ->and($validator->errors()->first('domain'))->toBe(trans('usercheck::validation.usercheck_disposable', ['attribute' => 'domain']));
 });
+
+test('usercheck validation rule fails when API returns 400 status', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'status' => 400,
+            'error' => 'The email is invalid.',
+        ], 400),
+    ]);
+
+    $validator = Validator::make(
+        ['email' => 'invalid@email'],
+        ['email' => 'usercheck']
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->first('email'))->toBe('The email is invalid.');
+});
+
+test('usercheck validation rule fails when API returns 400 status for domain_only', function () {
+    Http::fake([
+        'https://api.usercheck.com/domain/*' => Http::response([
+            'status' => 400,
+            'error' => 'The domain is invalid.',
+        ], 400),
+    ]);
+
+    $validator = Validator::make(
+        ['email' => 'test@gmailcom'],
+        ['email' => 'usercheck:domain_only']
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->first('email'))->toBe('The email is invalid.');
+});

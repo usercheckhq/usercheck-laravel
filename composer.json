@@ -1,8 +1,8 @@
 {
-    "name": "usercheck/laravel",
+    "name": "usercheck/usercheck-laravel",
     "description": "Laravel validation rule for UserCheck API",
     "keywords": ["laravel", "validation", "email", "disposable", "usercheck"],
-    "homepage": "https://github.com/usercheckhq/laravel",
+    "homepage": "https://github.com/usercheckhq/usercheck-laravel",
     "license": "MIT",
     "type": "library",
     "authors": [

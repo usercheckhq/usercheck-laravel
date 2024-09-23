@@ -1,8 +1,8 @@
 ## UserCheck for Laravel
 
-[![Latest Stable Version](https://img.shields.io/packagist/v/usercheck/laravel.svg?style=flat-square)](https://packagist.org/packages/usercheck/laravel)
-[![Total Downloads](https://img.shields.io/packagist/dt/usercheck/laravel.svg?style=flat-square)](https://packagist.org/packages/usercheck/laravel)
-[![License](https://img.shields.io/packagist/l/usercheck/laravel.svg?style=flat-square)](https://packagist.org/packages/usercheck/laravel)
+[![Latest Stable Version](https://img.shields.io/packagist/v/usercheck/usercheck-laravel.svg?style=flat-square)](https://packagist.org/packages/usercheck/usercheck-laravel)
+[![Total Downloads](https://img.shields.io/packagist/dt/usercheck/usercheck-laravel.svg?style=flat-square)](https://packagist.org/packages/usercheck/usercheck-laravel)
+[![License](https://img.shields.io/packagist/l/usercheck/usercheck-laravel.svg?style=flat-square)](https://packagist.org/packages/usercheck/usercheck-laravel)
 [![Tests Status](https://img.shields.io/github/actions/workflow/status/usercheckhq/laravel/tests.yml?label=tests&branch=main&style=flat-square)](https://github.com/usercheckhq/laravel/actions)
 
 A Laravel package for validating email addresses using the [UserCheck.com](https://www.usercheck.com) API.  
@@ -27,7 +27,7 @@ A Laravel package for validating email addresses using the [UserCheck.com](https
 Install the package via Composer:
 
 ```bash
-composer require usercheck/laravel
+composer require usercheck/usercheck-laravel
 ```
 
 ## Configuration

@@ -22,24 +22,54 @@ class UserCheckService
     /**
      * @return array<string, bool|string|null>
      */
-    public function validateEmail(string $email, bool $blockDisposable = false, bool $blockNoMx = false, bool $blockPublicDomain = false): array
-    {
-        return $this->validate('email', $email, $blockNoMx, $blockPublicDomain, $blockDisposable);
+    public function validateEmail(
+        string $email,
+        bool $blockDisposable = false,
+        bool $blockNoMx = false,
+        bool $blockPublicDomain = false,
+        bool $blockBlocklisted = false
+    ): array {
+        return $this->validate(
+            'email',
+            $email,
+            $blockNoMx,
+            $blockPublicDomain,
+            $blockDisposable,
+            $blockBlocklisted
+        );
     }
 
     /**
      * @return array<string, bool|string|null>
      */
-    public function validateDomain(string $domain, bool $blockDisposable = false, bool $blockNoMx = false, bool $blockPublicDomain = false): array
-    {
-        return $this->validate('domain', $domain, $blockNoMx, $blockPublicDomain, $blockDisposable);
+    public function validateDomain(
+        string $domain,
+        bool $blockDisposable = false,
+        bool $blockNoMx = false,
+        bool $blockPublicDomain = false,
+        bool $blockBlocklisted = false
+    ): array {
+        return $this->validate(
+            'domain',
+            $domain,
+            $blockNoMx,
+            $blockPublicDomain,
+            $blockDisposable,
+            $blockBlocklisted
+        );
     }
 
     /**
      * @return array<string, bool|string|null>
      */
-    protected function validate(string $endpoint, string $value, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable): array
-    {
+    protected function validate(
+        string $endpoint,
+        string $value,
+        bool $blockNoMx,
+        bool $blockPublicDomain,
+        bool $blockDisposable,
+        bool $blockBlocklisted
+    ): array {
         $response = Http::withToken($this->apiKey)
             ->withHeader('User-Agent', 'UserCheck-Laravel/0.0.1 (https://github.com/usercheckhq/laravel)')
             ->get("https://api.usercheck.com/{$endpoint}/".urlencode($value));
@@ -60,19 +90,22 @@ class UserCheckService
             throw new ApiRequestException('Invalid response format from UserCheck API');
         }
 
-        $isValid = $this->checkValidity($data, $blockNoMx, $blockPublicDomain, $blockDisposable);
+        $isValid = $this->checkValidity($data, $blockNoMx, $blockPublicDomain, $blockDisposable, $blockBlocklisted);
 
         return [
             'is_valid' => $isValid,
-            'error_code' => $this->getErrorCode($data, $blockNoMx, $blockPublicDomain, $blockDisposable),
+            'error_code' => $this->getErrorCode($data, $blockNoMx, $blockPublicDomain, $blockDisposable, $blockBlocklisted),
         ];
     }
 
     /**
      * @param  array<string, bool>  $data
      */
-    protected function checkValidity(array $data, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable): bool
+    protected function checkValidity(array $data, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable, bool $blockBlocklisted): bool
     {
+        if ($blockBlocklisted && ($data['blocklisted'] ?? false)) {
+            return false;
+        }
         if ($blockDisposable && ($data['disposable'] ?? false)) {
             return false;
         }
@@ -89,8 +122,11 @@ class UserCheckService
     /**
      * @param  array<string, bool>  $data
      */
-    protected function getErrorCode(array $data, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable): ?string
+    protected function getErrorCode(array $data, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable, bool $blockBlocklisted): ?string
     {
+        if ($blockBlocklisted && ($data['blocklisted'] ?? false)) {
+            return 'blocklisted';
+        }
         if ($blockDisposable && ($data['disposable'] ?? false)) {
             return 'disposable';
         }

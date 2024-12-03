@@ -1,0 +1,11 @@
+{
+    "context": "llm.txt",
+    "database": [],
+    "skip_patterns": [
+        "*.cache",
+        "*.gitignore",
+        "*.json",
+        "composer.json",
+        "composer.lock"
+    ]
+}

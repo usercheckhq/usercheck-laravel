@@ -246,3 +246,228 @@ test('usercheck validation rule fails when API returns 400 status for domain_onl
     expect($validator->fails())->toBeTrue()
         ->and($validator->errors()->first('email'))->toBe('The email is invalid.');
 });
+
+test('usercheck validation rule fails when email is blocklisted and block_blocklisted is set', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'blocklisted' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['email' => 'test@blocklisted.com'],
+        ['email' => 'usercheck:block_blocklisted']
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->first('email'))->toBe(trans('usercheck::validation.usercheck_blocklisted', ['attribute' => 'email']));
+});
+
+test('usercheck validation rule passes when email is blocklisted but block_blocklisted is not set', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'blocklisted' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['email' => 'test@blocklisted.com'],
+        ['email' => 'usercheck']
+    );
+
+    expect($validator->passes())->toBeTrue();
+});
+
+test('usercheck validation rule fails when domain is blocklisted with domain_only and block_blocklisted', function () {
+    Http::fake([
+        'https://api.usercheck.com/domain/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'blocklisted' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['domain' => 'blocklisted.com'],
+        ['domain' => 'usercheck:domain_only,block_blocklisted']
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->first('domain'))->toBe(trans('usercheck::validation.usercheck_blocklisted', ['attribute' => 'domain']));
+});
+
+test('usercheck validation rule passes when domain is blocklisted with domain_only but without block_blocklisted', function () {
+    Http::fake([
+        'https://api.usercheck.com/domain/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'blocklisted' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['domain' => 'blocklisted.com'],
+        ['domain' => 'usercheck:domain_only']
+    );
+
+    expect($validator->passes())->toBeTrue();
+});
+
+// Add these tests to ValidatorExtensionsTest.php
+
+test('usercheck validation rule handles multiple blocklist scenarios correctly', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'blocklisted' => true,
+        ], 200),
+    ]);
+
+    // Test with both block_blocklisted and other flags
+    $validator = Validator::make(
+        ['email' => 'test@blocklisted.com'],
+        ['email' => 'usercheck:block_blocklisted,block_disposable']
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->first('email'))
+        ->toBe(trans('usercheck::validation.usercheck_blocklisted', ['attribute' => 'email']));
+
+    // Test with custom error message
+    $validator = Validator::make(
+        ['email' => 'test@blocklisted.com'],
+        ['email' => 'usercheck:block_blocklisted'],
+        ['usercheck' => 'Custom blocklist message for :attribute']
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->first('email'))
+        ->toBe('Custom blocklist message for email');
+});
+
+test('usercheck validation rule handles blocklisted subdomains correctly', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'blocklisted' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['email' => 'test@subdomain.blocklisted.com'],
+        ['email' => 'usercheck:block_blocklisted']
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->first('email'))
+        ->toBe(trans('usercheck::validation.usercheck_blocklisted', ['attribute' => 'email']));
+});
+
+test('usercheck validation prioritizes blocklist error over other validation failures', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => true,
+            'public_domain' => true,
+            'mx' => false,
+            'blocklisted' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['email' => 'test@blocklisted.com'],
+        ['email' => ['required', 'email', 'usercheck:block_blocklisted,block_disposable,block_no_mx,block_public_domain']]
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->first('email'))
+        ->toBe(trans('usercheck::validation.usercheck_blocklisted', ['attribute' => 'email']));
+});
+
+test('usercheck validation rule properly handles blocklisted domains with domain_only option', function () {
+    // First test: Domain is blocklisted
+    Http::fake([
+        'https://api.usercheck.com/domain/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'blocklisted' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['domain' => 'blocklisted.com'],
+        ['domain' => ['required', 'usercheck:domain_only,block_blocklisted']]
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->first('domain'))
+        ->toBe(trans('usercheck::validation.usercheck_blocklisted', ['attribute' => 'domain']));
+});
+
+test('usercheck validation rule passes for non-blocklisted domains with domain_only option', function () {
+    Http::fake([
+        'https://api.usercheck.com/domain/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'blocklisted' => false,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['domain' => 'example.com'],
+        ['domain' => ['required', 'usercheck:domain_only,block_blocklisted']]
+    );
+
+    expect($validator->passes())->toBeTrue();
+});
+
+// Parameter Combination Tests
+test('handles conflicting parameters in validator', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => true,
+            'public_domain' => true,
+            'mx' => false,
+            'blocklisted' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['email' => 'test@example.com'],
+        ['email' => 'usercheck:domain_only,block_disposable,block_no_mx,block_public_domain,block_blocklisted']
+    );
+
+    expect($validator->fails())->toBeTrue();
+});
+
+test('handles duplicate parameters in validator', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => true,
+            'public_domain' => false,
+            'mx' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['email' => 'test@example.com'],
+        ['email' => 'usercheck:block_disposable,block_disposable']
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->first('email'))
+        ->toBe(trans('usercheck::validation.usercheck_disposable', ['attribute' => 'email']));
+});

@@ -4,3 +4,5 @@ vendor/
 .phpunit.cache/test-results
 
 build/
+
+flattened_codebase.txt

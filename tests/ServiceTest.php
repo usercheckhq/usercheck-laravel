@@ -225,3 +225,168 @@ test('throws exception when API key is not set', function () {
 
     new UserCheckService;
 });
+
+test('validateEmail returns invalid when email is blocklisted', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'blocklisted' => true,
+        ], 200),
+    ]);
+
+    $service = new UserCheckService;
+
+    $result = $service->validateEmail('test@blocklisted.com', false, false, false, true);
+
+    expect($result['is_valid'])->toBeFalse()
+        ->and($result['error_code'])->toBe('blocklisted');
+});
+
+test('validateEmail returns valid when email is blocklisted but block_blocklisted is false', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'blocklisted' => true,
+        ], 200),
+    ]);
+
+    $service = new UserCheckService;
+
+    $result = $service->validateEmail('test@blocklisted.com');
+
+    expect($result['is_valid'])->toBeTrue()
+        ->and($result['error_code'])->toBeNull();
+});
+
+test('validateDomain returns invalid when domain is blocklisted', function () {
+    Http::fake([
+        'https://api.usercheck.com/domain/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'blocklisted' => true,
+        ], 200),
+    ]);
+
+    $service = new UserCheckService;
+
+    $result = $service->validateDomain('blocklisted.com', false, false, false, true);
+
+    expect($result['is_valid'])->toBeFalse()
+        ->and($result['error_code'])->toBe('blocklisted');
+});
+
+test('validateDomain returns valid when domain is blocklisted but block_blocklisted is false', function () {
+    Http::fake([
+        'https://api.usercheck.com/domain/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'blocklisted' => true,
+        ], 200),
+    ]);
+
+    $service = new UserCheckService;
+
+    $result = $service->validateDomain('blocklisted.com');
+
+    expect($result['is_valid'])->toBeTrue()
+        ->and($result['error_code'])->toBeNull();
+});
+
+// Invalid Input Tests
+test('validateEmail handles null input by throwing TypeError', function () {
+    $service = new UserCheckService;
+
+    expect(fn () => $service->validateEmail(null))
+        ->toThrow(TypeError::class);
+});
+
+test('validateEmail handles array input by throwing TypeError', function () {
+    $service = new UserCheckService;
+
+    expect(fn () => $service->validateEmail(['test@example.com']))
+        ->toThrow(TypeError::class);
+});
+
+test('validateEmail handles empty string input', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([], 400),
+    ]);
+
+    $service = new UserCheckService;
+    $result = $service->validateEmail('');
+
+    expect($result['is_valid'])->toBeFalse()
+        ->and($result['error_code'])->toBe('usercheck');
+});
+
+test('validateEmail handles extremely long email addresses', function () {
+    $longLocalPart = str_repeat('a', 64); // RFC 5321 limit
+    $longDomain = str_repeat('b', 255); // Maximum domain length
+    $longEmail = "{$longLocalPart}@{$longDomain}.com";
+
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+        ], 200),
+    ]);
+
+    $service = new UserCheckService;
+    $result = $service->validateEmail($longEmail);
+
+    expect($result['is_valid'])->toBeTrue()
+        ->and($result['error_code'])->toBeNull();
+});
+
+test('validateEmail handles multiple @ symbols by returning invalid', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([], 400),
+    ]);
+
+    $service = new UserCheckService;
+    $result = $service->validateEmail('test@multiple@example.com');
+
+    expect($result['is_valid'])->toBeFalse()
+        ->and($result['error_code'])->toBe('usercheck');
+});
+
+test('validateEmail handles missing blocklisted parameter in API response when block_blocklisted is true', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            // blocklisted parameter is missing
+        ], 200),
+    ]);
+
+    $service = new UserCheckService;
+    $result = $service->validateEmail('test@example.com', false, false, false, true);
+
+    expect($result['is_valid'])->toBeTrue()
+        ->and($result['error_code'])->toBeNull();
+});
+
+test('validateDomain handles missing blocklisted parameter in API response when block_blocklisted is true', function () {
+    Http::fake([
+        'https://api.usercheck.com/domain/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            // blocklisted parameter is missing
+        ], 200),
+    ]);
+
+    $service = new UserCheckService;
+    $result = $service->validateDomain('example.com', false, false, false, true);
+
+    expect($result['is_valid'])->toBeTrue()
+        ->and($result['error_code'])->toBeNull();
+});

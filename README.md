@@ -1,4 +1,4 @@
-## UserCheck for Laravel
+# UserCheck for Laravel
 
 [![Latest Stable Version](https://img.shields.io/packagist/v/usercheck/usercheck-laravel.svg?style=flat-square)](https://packagist.org/packages/usercheck/usercheck-laravel)
 [![Total Downloads](https://img.shields.io/packagist/dt/usercheck/usercheck-laravel.svg?style=flat-square)](https://packagist.org/packages/usercheck/usercheck-laravel)
@@ -13,6 +13,7 @@ A Laravel package for validating email addresses using the [UserCheck.com](https
 - Validate email addresses
 - Check for MX records
 - Identify personal email addresses
+- Blocks custom domains (Paid plans only)
 - Customizable validation rules
 - Laravel Facade for easy use
 - Localization support
@@ -60,8 +61,9 @@ The `usercheck` rule accepts several parameters:
 - `block_no_mx`: Fails validation if the domain has no MX records
 - `block_public_domain`: Fails validation for public email domains (e.g., Gmail, Yahoo). Great to prevent users from signing up with their personal email addresses.
 - `domain_only`: Validates only the domain part of the email. Great for privacy; only the domain will be sent to the API.
+- `block_blocklisted`: (Paid plans only) Blocks domains from your custom blocklist.
 
-You can combine these options to create a custom validation rule.
+You can combine these options to create a custom validation rule:
 
 ```php
 $request->validate([

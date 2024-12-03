@@ -12,6 +12,8 @@ class ErrorMessages
 
     public const PUBLIC_DOMAIN = 'usercheck_public_domain';
 
+    public const BLOCKLISTED = 'usercheck_blocklisted';
+
     public static function get(string $key, string $attribute): string
     {
         return trans("usercheck::validation.{$key}", ['attribute' => $attribute]);
@@ -23,6 +25,7 @@ class ErrorMessages
             'disposable' => self::DISPOSABLE,
             'no_mx' => self::NO_MX,
             'public_domain' => self::PUBLIC_DOMAIN,
+            'blocklisted' => self::BLOCKLISTED,
             default => self::DEFAULT,
         };
 

@@ -29,6 +29,7 @@ class UserCheck implements ValidationRule
         $blockDisposable = in_array('block_disposable', $this->parameters);
         $blockNoMx = in_array('block_no_mx', $this->parameters);
         $blockPublicDomain = in_array('block_public_domain', $this->parameters);
+        $blockBlocklisted = in_array('block_blocklisted', $this->parameters);
 
         if (! is_string($value)) {
             $fail(ErrorMessages::get('usercheck', $attribute));
@@ -38,8 +39,8 @@ class UserCheck implements ValidationRule
 
         try {
             $result = $domainOnly
-                ? $this->service->validateDomain($value, $blockDisposable, $blockNoMx, $blockPublicDomain)
-                : $this->service->validateEmail($value, $blockDisposable, $blockNoMx, $blockPublicDomain);
+                ? $this->service->validateDomain($value, $blockDisposable, $blockNoMx, $blockPublicDomain, $blockBlocklisted)
+                : $this->service->validateEmail($value, $blockDisposable, $blockNoMx, $blockPublicDomain, $blockBlocklisted);
 
             if (! $result['is_valid']) {
                 $errorCode = $result['error_code'] ?? null;

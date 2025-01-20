@@ -471,3 +471,77 @@ test('handles duplicate parameters in validator', function () {
         ->and($validator->errors()->first('email'))
         ->toBe(trans('usercheck::validation.usercheck_disposable', ['attribute' => 'email']));
 });
+
+test('usercheck validation rule fails when email is from relay domain and block_relay_domain is set', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'relay_domain' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['email' => 'test@relay.com'],
+        ['email' => 'usercheck:block_relay_domain']
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->first('email'))->toBe(trans('usercheck::validation.usercheck_relay_domain', ['attribute' => 'email']));
+});
+
+test('usercheck validation rule passes when email is from relay domain but block_relay_domain is not set', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'relay_domain' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['email' => 'test@relay.com'],
+        ['email' => 'usercheck']
+    );
+
+    expect($validator->passes())->toBeTrue();
+});
+
+test('usercheck validation rule fails when domain is relay domain with domain_only and block_relay_domain', function () {
+    Http::fake([
+        'https://api.usercheck.com/domain/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'relay_domain' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['domain' => 'relay.com'],
+        ['domain' => 'usercheck:domain_only,block_relay_domain']
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->first('domain'))->toBe(trans('usercheck::validation.usercheck_relay_domain', ['attribute' => 'domain']));
+});
+
+test('usercheck validation rule passes when domain is relay domain with domain_only but without block_relay_domain', function () {
+    Http::fake([
+        'https://api.usercheck.com/domain/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'relay_domain' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['domain' => 'relay.com'],
+        ['domain' => 'usercheck:domain_only']
+    );
+
+    expect($validator->passes())->toBeTrue();
+});

@@ -27,7 +27,8 @@ class UserCheckService
         bool $blockDisposable = false,
         bool $blockNoMx = false,
         bool $blockPublicDomain = false,
-        bool $blockBlocklisted = false
+        bool $blockBlocklisted = false,
+        bool $blockRelayDomain = false
     ): array {
         return $this->validate(
             'email',
@@ -35,7 +36,8 @@ class UserCheckService
             $blockNoMx,
             $blockPublicDomain,
             $blockDisposable,
-            $blockBlocklisted
+            $blockBlocklisted,
+            $blockRelayDomain
         );
     }
 
@@ -47,7 +49,8 @@ class UserCheckService
         bool $blockDisposable = false,
         bool $blockNoMx = false,
         bool $blockPublicDomain = false,
-        bool $blockBlocklisted = false
+        bool $blockBlocklisted = false,
+        bool $blockRelayDomain = false
     ): array {
         return $this->validate(
             'domain',
@@ -55,7 +58,8 @@ class UserCheckService
             $blockNoMx,
             $blockPublicDomain,
             $blockDisposable,
-            $blockBlocklisted
+            $blockBlocklisted,
+            $blockRelayDomain
         );
     }
 
@@ -68,7 +72,8 @@ class UserCheckService
         bool $blockNoMx,
         bool $blockPublicDomain,
         bool $blockDisposable,
-        bool $blockBlocklisted
+        bool $blockBlocklisted,
+        bool $blockRelayDomain
     ): array {
         $response = Http::withToken($this->apiKey)
             ->withHeader('User-Agent', 'UserCheck-Laravel/0.0.1 (https://github.com/usercheckhq/laravel)')
@@ -90,18 +95,18 @@ class UserCheckService
             throw new ApiRequestException('Invalid response format from UserCheck API');
         }
 
-        $isValid = $this->checkValidity($data, $blockNoMx, $blockPublicDomain, $blockDisposable, $blockBlocklisted);
+        $isValid = $this->checkValidity($data, $blockNoMx, $blockPublicDomain, $blockDisposable, $blockBlocklisted, $blockRelayDomain);
 
         return [
             'is_valid' => $isValid,
-            'error_code' => $this->getErrorCode($data, $blockNoMx, $blockPublicDomain, $blockDisposable, $blockBlocklisted),
+            'error_code' => $this->getErrorCode($data, $blockNoMx, $blockPublicDomain, $blockDisposable, $blockBlocklisted, $blockRelayDomain),
         ];
     }
 
     /**
      * @param  array<string, bool>  $data
      */
-    protected function checkValidity(array $data, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable, bool $blockBlocklisted): bool
+    protected function checkValidity(array $data, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable, bool $blockBlocklisted, bool $blockRelayDomain): bool
     {
         if ($blockBlocklisted && ($data['blocklisted'] ?? false)) {
             return false;
@@ -110,6 +115,9 @@ class UserCheckService
             return false;
         }
         if ($blockPublicDomain && ($data['public_domain'] ?? false)) {
+            return false;
+        }
+        if ($blockRelayDomain && ($data['relay_domain'] ?? false)) {
             return false;
         }
         if ($blockNoMx && ! ($data['mx'] ?? true)) {
@@ -122,7 +130,7 @@ class UserCheckService
     /**
      * @param  array<string, bool>  $data
      */
-    protected function getErrorCode(array $data, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable, bool $blockBlocklisted): ?string
+    protected function getErrorCode(array $data, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable, bool $blockBlocklisted, bool $blockRelayDomain): ?string
     {
         if ($blockBlocklisted && ($data['blocklisted'] ?? false)) {
             return 'blocklisted';
@@ -132,6 +140,9 @@ class UserCheckService
         }
         if ($blockPublicDomain && ($data['public_domain'] ?? false)) {
             return 'public_domain';
+        }
+        if ($blockRelayDomain && ($data['relay_domain'] ?? false)) {
+            return 'relay_domain';
         }
         if ($blockNoMx && ! ($data['mx'] ?? true)) {
             return 'no_mx';

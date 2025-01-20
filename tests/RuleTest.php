@@ -232,3 +232,41 @@ test('UserCheckRule handles extremely long email addresses', function () {
 
     expect($fails)->toBeFalse();
 });
+
+test('UserCheckRule fails when email is from relay domain and block_relay_domain is set', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'relay_domain' => true,
+        ], 200),
+    ]);
+
+    $rule = new UserCheck(new UserCheckService, ['block_relay_domain']);
+    $failMessage = '';
+    $rule->validate('email', 'test@relay.com', function ($message) use (&$failMessage) {
+        $failMessage = $message;
+    });
+
+    expect($failMessage)->toBe(trans('usercheck::validation.usercheck_relay_domain', ['attribute' => 'email']));
+});
+
+test('UserCheckRule passes when email is from relay domain but block_relay_domain is not set', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'relay_domain' => true,
+        ], 200),
+    ]);
+
+    $rule = new UserCheck(new UserCheckService);
+    $fails = false;
+    $rule->validate('email', 'test@relay.com', function () use (&$fails) {
+        $fails = true;
+    });
+
+    expect($fails)->toBeFalse();
+});

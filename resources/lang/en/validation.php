@@ -7,4 +7,5 @@ return [
     'usercheck_public_domain' => 'The :attribute is invalid because it is from a public email domain.',
     'validation_failed' => 'Unable to validate the :attribute',
     'usercheck_blocklisted' => 'The :attribute is invalid because it is from a blocklisted domain.',
+    'usercheck_relay_domain' => 'The :attribute is invalid because it is from an email forwarding service.',
 ];

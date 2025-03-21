@@ -462,3 +462,75 @@ test('validateDomain returns valid when domain is relay domain but block_relay_d
     expect($result['is_valid'])->toBeTrue()
         ->and($result['error_code'])->toBeNull();
 });
+
+test('validateEmail returns invalid when email is from spam domain and block_spam is true', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'spam' => true,
+        ], 200),
+    ]);
+
+    $service = new UserCheckService;
+
+    $result = $service->validateEmail('test@spam.com', false, false, false, false, false, true);
+
+    expect($result['is_valid'])->toBeFalse()
+        ->and($result['error_code'])->toBe('spam');
+});
+
+test('validateEmail returns valid when email is from spam domain but block_spam is false', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'spam' => true,
+        ], 200),
+    ]);
+
+    $service = new UserCheckService;
+
+    $result = $service->validateEmail('test@spam.com');
+
+    expect($result['is_valid'])->toBeTrue()
+        ->and($result['error_code'])->toBeNull();
+});
+
+test('validateDomain returns invalid when domain is spam domain and block_spam is true', function () {
+    Http::fake([
+        'https://api.usercheck.com/domain/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'spam' => true,
+        ], 200),
+    ]);
+
+    $service = new UserCheckService;
+
+    $result = $service->validateDomain('spam.com', false, false, false, false, false, true);
+
+    expect($result['is_valid'])->toBeFalse()
+        ->and($result['error_code'])->toBe('spam');
+});
+
+test('validateDomain returns valid when domain is spam domain but block_spam is false', function () {
+    Http::fake([
+        'https://api.usercheck.com/domain/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'spam' => true,
+        ], 200),
+    ]);
+
+    $service = new UserCheckService;
+
+    $result = $service->validateDomain('spam.com');
+
+    expect($result['is_valid'])->toBeTrue()
+        ->and($result['error_code'])->toBeNull();
+});

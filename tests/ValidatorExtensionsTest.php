@@ -545,3 +545,77 @@ test('usercheck validation rule passes when domain is relay domain with domain_o
 
     expect($validator->passes())->toBeTrue();
 });
+
+test('usercheck validation rule fails when email is from spam domain and block_spam is set', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'spam' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['email' => 'test@spam.com'],
+        ['email' => 'usercheck:block_spam']
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->first('email'))->toBe(trans('usercheck::validation.usercheck_spam', ['attribute' => 'email']));
+});
+
+test('usercheck validation rule passes when email is from spam domain but block_spam is not set', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'spam' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['email' => 'test@spam.com'],
+        ['email' => 'usercheck']
+    );
+
+    expect($validator->passes())->toBeTrue();
+});
+
+test('usercheck validation rule fails when domain is spam domain with domain_only and block_spam', function () {
+    Http::fake([
+        'https://api.usercheck.com/domain/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'spam' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['domain' => 'spam.com'],
+        ['domain' => 'usercheck:domain_only,block_spam']
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->first('domain'))->toBe(trans('usercheck::validation.usercheck_spam', ['attribute' => 'domain']));
+});
+
+test('usercheck validation rule passes when domain is spam domain with domain_only but without block_spam', function () {
+    Http::fake([
+        'https://api.usercheck.com/domain/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'spam' => true,
+        ], 200),
+    ]);
+
+    $validator = Validator::make(
+        ['domain' => 'spam.com'],
+        ['domain' => 'usercheck:domain_only']
+    );
+
+    expect($validator->passes())->toBeTrue();
+});

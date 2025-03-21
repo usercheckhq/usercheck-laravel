@@ -16,6 +16,8 @@ class ErrorMessages
 
     public const RELAY_DOMAIN = 'usercheck_relay_domain';
 
+    public const SPAM = 'usercheck_spam';
+
     public static function get(string $key, string $attribute): string
     {
         return trans("usercheck::validation.{$key}", ['attribute' => $attribute]);
@@ -29,6 +31,7 @@ class ErrorMessages
             'public_domain' => self::PUBLIC_DOMAIN,
             'blocklisted' => self::BLOCKLISTED,
             'relay_domain' => self::RELAY_DOMAIN,
+            'spam' => self::SPAM,
             default => self::DEFAULT,
         };
 

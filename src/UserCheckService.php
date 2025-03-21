@@ -28,7 +28,8 @@ class UserCheckService
         bool $blockNoMx = false,
         bool $blockPublicDomain = false,
         bool $blockBlocklisted = false,
-        bool $blockRelayDomain = false
+        bool $blockRelayDomain = false,
+        bool $blockSpam = false
     ): array {
         return $this->validate(
             'email',
@@ -37,7 +38,8 @@ class UserCheckService
             $blockPublicDomain,
             $blockDisposable,
             $blockBlocklisted,
-            $blockRelayDomain
+            $blockRelayDomain,
+            $blockSpam
         );
     }
 
@@ -50,7 +52,8 @@ class UserCheckService
         bool $blockNoMx = false,
         bool $blockPublicDomain = false,
         bool $blockBlocklisted = false,
-        bool $blockRelayDomain = false
+        bool $blockRelayDomain = false,
+        bool $blockSpam = false
     ): array {
         return $this->validate(
             'domain',
@@ -59,7 +62,8 @@ class UserCheckService
             $blockPublicDomain,
             $blockDisposable,
             $blockBlocklisted,
-            $blockRelayDomain
+            $blockRelayDomain,
+            $blockSpam
         );
     }
 
@@ -73,7 +77,8 @@ class UserCheckService
         bool $blockPublicDomain,
         bool $blockDisposable,
         bool $blockBlocklisted,
-        bool $blockRelayDomain
+        bool $blockRelayDomain,
+        bool $blockSpam
     ): array {
         $response = Http::withToken($this->apiKey)
             ->withHeader('User-Agent', 'UserCheck-Laravel/0.0.1 (https://github.com/usercheckhq/laravel)')
@@ -95,18 +100,18 @@ class UserCheckService
             throw new ApiRequestException('Invalid response format from UserCheck API');
         }
 
-        $isValid = $this->checkValidity($data, $blockNoMx, $blockPublicDomain, $blockDisposable, $blockBlocklisted, $blockRelayDomain);
+        $isValid = $this->checkValidity($data, $blockNoMx, $blockPublicDomain, $blockDisposable, $blockBlocklisted, $blockRelayDomain, $blockSpam);
 
         return [
             'is_valid' => $isValid,
-            'error_code' => $this->getErrorCode($data, $blockNoMx, $blockPublicDomain, $blockDisposable, $blockBlocklisted, $blockRelayDomain),
+            'error_code' => $this->getErrorCode($data, $blockNoMx, $blockPublicDomain, $blockDisposable, $blockBlocklisted, $blockRelayDomain, $blockSpam),
         ];
     }
 
     /**
      * @param  array<string, bool>  $data
      */
-    protected function checkValidity(array $data, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable, bool $blockBlocklisted, bool $blockRelayDomain): bool
+    protected function checkValidity(array $data, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable, bool $blockBlocklisted, bool $blockRelayDomain, bool $blockSpam): bool
     {
         if ($blockBlocklisted && ($data['blocklisted'] ?? false)) {
             return false;
@@ -118,6 +123,9 @@ class UserCheckService
             return false;
         }
         if ($blockRelayDomain && ($data['relay_domain'] ?? false)) {
+            return false;
+        }
+        if ($blockSpam && ($data['spam'] ?? false)) {
             return false;
         }
         if ($blockNoMx && ! ($data['mx'] ?? true)) {
@@ -130,7 +138,7 @@ class UserCheckService
     /**
      * @param  array<string, bool>  $data
      */
-    protected function getErrorCode(array $data, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable, bool $blockBlocklisted, bool $blockRelayDomain): ?string
+    protected function getErrorCode(array $data, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable, bool $blockBlocklisted, bool $blockRelayDomain, bool $blockSpam): ?string
     {
         if ($blockBlocklisted && ($data['blocklisted'] ?? false)) {
             return 'blocklisted';
@@ -143,6 +151,9 @@ class UserCheckService
         }
         if ($blockRelayDomain && ($data['relay_domain'] ?? false)) {
             return 'relay_domain';
+        }
+        if ($blockSpam && ($data['spam'] ?? false)) {
+            return 'spam';
         }
         if ($blockNoMx && ! ($data['mx'] ?? true)) {
             return 'no_mx';

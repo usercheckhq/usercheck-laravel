@@ -8,4 +8,5 @@ return [
     'validation_failed' => 'Unable to validate the :attribute',
     'usercheck_blocklisted' => 'The :attribute is invalid because it is from a blocklisted domain.',
     'usercheck_relay_domain' => 'The :attribute is invalid because it is from an email forwarding service.',
+    'usercheck_spam' => 'The :attribute is invalid because it is from a domain marked as spam.',
 ];

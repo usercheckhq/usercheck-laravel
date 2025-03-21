@@ -270,3 +270,41 @@ test('UserCheckRule passes when email is from relay domain but block_relay_domai
 
     expect($fails)->toBeFalse();
 });
+
+test('UserCheckRule fails when email is from spam domain and block_spam is set', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'spam' => true,
+        ], 200),
+    ]);
+
+    $rule = new UserCheck(new UserCheckService, ['block_spam']);
+    $failMessage = '';
+    $rule->validate('email', 'test@spam.com', function ($message) use (&$failMessage) {
+        $failMessage = $message;
+    });
+
+    expect($failMessage)->toBe(trans('usercheck::validation.usercheck_spam', ['attribute' => 'email']));
+});
+
+test('UserCheckRule passes when email is from spam domain but block_spam is not set', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+            'spam' => true,
+        ], 200),
+    ]);
+
+    $rule = new UserCheck(new UserCheckService);
+    $fails = false;
+    $rule->validate('email', 'test@spam.com', function () use (&$fails) {
+        $fails = true;
+    });
+
+    expect($fails)->toBeFalse();
+});

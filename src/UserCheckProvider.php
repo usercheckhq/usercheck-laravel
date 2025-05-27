@@ -24,6 +24,7 @@ class UserCheckProvider extends ServiceProvider
             $rule = new UserCheck($this->app->make(UserCheckService::class), $parameters);
             $fails = false;
             $failMessage = '';
+            // @phpstan-ignore-next-line - ValidationRule interface used with legacy Validator::extend
             $rule->validate($attribute, $value, function ($message) use (&$fails, &$failMessage) {
                 $fails = true;
                 $failMessage = $message;

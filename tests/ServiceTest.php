@@ -1,5 +1,6 @@
 <?php
 
+use Composer\InstalledVersions;
 use Illuminate\Support\Facades\Http;
 use UserCheck\Laravel\Exceptions\ApiRequestException;
 use UserCheck\Laravel\UserCheckService;
@@ -546,11 +547,11 @@ test('sends a User-Agent header that identifies the package and the installed ve
 
     (new UserCheckService)->validateEmail('test@example.com');
 
-    Http::assertSent(function ($request) {
+    $expectedVersion = InstalledVersions::getPrettyVersion('usercheck/usercheck-laravel') ?? 'dev';
+
+    Http::assertSent(function ($request) use ($expectedVersion) {
         $userAgent = $request->header('User-Agent')[0] ?? '';
 
-        return str_starts_with($userAgent, 'UserCheck-Laravel/')
-            && str_contains($userAgent, '(https://github.com/usercheckhq/usercheck-laravel)')
-            && ! str_contains($userAgent, '/0.0.1 ');
+        return $userAgent === "UserCheck-Laravel/{$expectedVersion} (https://github.com/usercheckhq/usercheck-laravel)";
     });
 });

@@ -107,7 +107,7 @@ composer test
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+Contributions are welcome! Open an issue or pull request on GitHub.
 
 ## Security
 

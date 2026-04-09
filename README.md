@@ -22,8 +22,8 @@ A Laravel package for validating email addresses using the [UserCheck.com](https
 
 ## Requirements
 
-- PHP 8.0+
-- Laravel 11.0+
+- PHP 8.2+
+- Laravel 11, 12, or 13
 
 ## Installation
 

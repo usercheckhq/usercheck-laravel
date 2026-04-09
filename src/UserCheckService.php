@@ -2,6 +2,7 @@
 
 namespace UserCheck\Laravel;
 
+use Composer\InstalledVersions;
 use Illuminate\Support\Facades\Http;
 use InvalidArgumentException;
 use UserCheck\Laravel\Exceptions\ApiRequestException;
@@ -80,8 +81,10 @@ class UserCheckService
         bool $blockRelayDomain,
         bool $blockSpam
     ): array {
+        $version = InstalledVersions::getPrettyVersion('usercheck/usercheck-laravel') ?? 'dev';
+
         $response = Http::withToken($this->apiKey)
-            ->withHeader('User-Agent', 'UserCheck-Laravel/0.0.1 (https://github.com/usercheckhq/laravel)')
+            ->withHeader('User-Agent', "UserCheck-Laravel/{$version} (https://github.com/usercheckhq/usercheck-laravel)")
             ->get("https://api.usercheck.com/{$endpoint}/".urlencode($value));
 
         if ($response->status() === 400) {

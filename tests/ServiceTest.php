@@ -1,5 +1,6 @@
 <?php
 
+use Composer\InstalledVersions;
 use Illuminate\Support\Facades\Http;
 use UserCheck\Laravel\Exceptions\ApiRequestException;
 use UserCheck\Laravel\UserCheckService;
@@ -533,4 +534,24 @@ test('validateDomain returns valid when domain is spam domain but block_spam is 
 
     expect($result['is_valid'])->toBeTrue()
         ->and($result['error_code'])->toBeNull();
+});
+
+test('sends a User-Agent header that identifies the package and the installed version', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+        ], 200),
+    ]);
+
+    (new UserCheckService)->validateEmail('test@example.com');
+
+    $expectedVersion = InstalledVersions::getPrettyVersion('usercheck/usercheck-laravel') ?? 'dev';
+
+    Http::assertSent(function ($request) use ($expectedVersion) {
+        $userAgent = $request->header('User-Agent')[0] ?? '';
+
+        return $userAgent === "UserCheck-Laravel/{$expectedVersion} (https://github.com/usercheckhq/usercheck-laravel)";
+    });
 });

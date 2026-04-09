@@ -50,6 +50,7 @@
     "scripts": {
         "test": "vendor/bin/pest",
         "test-coverage": "vendor/bin/phpunit --coverage-html coverage",
+        "mutate": "vendor/bin/pest --mutate --coverage --covered-only",
         "format": "vendor/bin/pint",
         "analyze": "vendor/bin/phpstan analyse"
     },

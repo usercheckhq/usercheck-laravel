@@ -104,6 +104,16 @@ Run the tests with:
 composer test
 ```
 
+### Mutation testing
+
+Mutation testing is configured via Pest 4 and can be run with:
+
+```bash
+composer mutate
+```
+
+This requires a code coverage driver (Xdebug or PCOV) to be loaded.
+
 ## Contributing
 
 Contributions are welcome! Open an issue or pull request on GitHub.

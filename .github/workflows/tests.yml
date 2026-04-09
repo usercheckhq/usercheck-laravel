@@ -14,18 +14,24 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        php: [8.2, 8.3]
+        php: [8.2, 8.3, 8.4]
+        laravel: [11.*, 12.*, 13.*]
+        include:
+          - laravel: 11.*
+            testbench: 9.*
+          - laravel: 12.*
+            testbench: 10.*
+          - laravel: 13.*
+            testbench: 11.*
+        exclude:
+          - laravel: 13.*
+            php: 8.2
 
-    name: "PHP ${{ matrix.php }} - ${{ matrix.composer-dependency }}"
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
 
     steps:
-      - name: Set git to use LF
-        run: |
-          git config --global core.autocrlf false
-          git config --global core.eol lf
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -38,13 +44,35 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer install
+          composer require \
+            "laravel/framework:${{ matrix.laravel }}" \
+            "orchestra/testbench:${{ matrix.testbench }}" \
+            --dev --no-interaction --no-update
+          composer update --prefer-stable --prefer-dist --no-interaction
+
+      - name: Execute tests
+        run: vendor/bin/pest
+
+  quality:
+    runs-on: ubuntu-latest
+    name: Lint & static analysis
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          tools: composer:v2
+          coverage: none
+
+      - name: Install dependencies
+        run: composer update --prefer-stable --prefer-dist --no-interaction
 
       - name: Execute lint tests with Laravel preset
         run: vendor/bin/pint --test
 
       - name: Execute static analysis
         run: vendor/bin/phpstan
-
-      - name: Execute unit/feature tests
-        run: vendor/bin/pest

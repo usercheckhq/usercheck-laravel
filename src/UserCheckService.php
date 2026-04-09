@@ -109,7 +109,7 @@ class UserCheckService
     }
 
     /**
-     * @param  array<string, bool>  $data
+     * @param  array<array-key, mixed>  $data
      */
     protected function checkValidity(array $data, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable, bool $blockBlocklisted, bool $blockRelayDomain, bool $blockSpam): bool
     {
@@ -136,7 +136,7 @@ class UserCheckService
     }
 
     /**
-     * @param  array<string, bool>  $data
+     * @param  array<array-key, mixed>  $data
      */
     protected function getErrorCode(array $data, bool $blockNoMx, bool $blockPublicDomain, bool $blockDisposable, bool $blockBlocklisted, bool $blockRelayDomain, bool $blockSpam): ?string
     {

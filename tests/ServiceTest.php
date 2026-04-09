@@ -534,3 +534,23 @@ test('validateDomain returns valid when domain is spam domain but block_spam is 
     expect($result['is_valid'])->toBeTrue()
         ->and($result['error_code'])->toBeNull();
 });
+
+test('sends a User-Agent header that identifies the package and the installed version', function () {
+    Http::fake([
+        'https://api.usercheck.com/email/*' => Http::response([
+            'disposable' => false,
+            'public_domain' => false,
+            'mx' => true,
+        ], 200),
+    ]);
+
+    (new UserCheckService)->validateEmail('test@example.com');
+
+    Http::assertSent(function ($request) {
+        $userAgent = $request->header('User-Agent')[0] ?? '';
+
+        return str_starts_with($userAgent, 'UserCheck-Laravel/')
+            && str_contains($userAgent, '(https://github.com/usercheckhq/usercheck-laravel)')
+            && ! str_contains($userAgent, '/0.0.1 ');
+    });
+});

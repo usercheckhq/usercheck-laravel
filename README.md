@@ -10,15 +10,14 @@ A Laravel package for validating email addresses using the [UserCheck.com](https
 ## ✨ Features
 
 - Block disposable email addresses with an always up-to-date API
-- Validate email addresses
-- Check for MX records
-- Identify personal email addresses
-- Block email forwarding services
+- Block public email domains (Gmail, Yahoo, etc.) to require business addresses
+- Block email forwarding/relay services
 - Block domains marked as spam
-- Blocks custom domains (Paid plans only)
-- Customizable validation rules
-- Laravel Facade for easy use
-- Localization support
+- Block custom domains from your own blocklist (paid plans only)
+- Check for missing MX records
+- Validate by domain only for privacy — never sends the local part of the email to the API
+- Use as a string rule (`'usercheck:block_disposable'`), an object rule, or via the `UserCheck` facade directly
+- Localization support for all error messages
 
 ## Requirements
 
